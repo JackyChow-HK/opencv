@@ -1,0 +1,88 @@
+#include <opencv2/opencv.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <stdio.h>
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+const int fps = 20;
+
+Mat getSimilarity(const Mat& I1, const Mat& I2) {
+    Mat s1;
+    int i = 0;
+    int j = 0;
+
+    absdiff(I1, I2, s1);
+
+    for (i = 0; i < s1.cols; i++) {
+        for (j =0 ; j<s1.rows; j++){
+            Vec3b intensity = s1.at<Vec3b>(j, i);
+          if (intensity.val[2] != 0) {
+                Vec3b& intensity1 = s1.at<Vec3b>(j, i);
+                intensity1.val[2] = 0; //Without red colour 
+            }
+        }
+            /*Vec3b is the abbreviation for "vector with 3 byte entries"
+            
+            Here those byte entries are unsigned char values to represent values between 0 .. 255.
+
+            Each byte typically represents the intensity of a single color channel, so on default,
+
+            Vec3b is a single RGB(or better BGR) pixel.
+
+            So Vec3bVar[0] might be the blue color part, [1] greenand [2] red.*/
+    }
+    return s1;
+}
+
+int main()
+{
+    Mat frame, motion, oldFrame;
+    bool firstFrame = true;
+    VideoCapture cap(0); //open the video camera no.1
+
+    if (!cap.isOpened()) {//if not sucess , exit program
+        cout << "Cannot open the video file" << endl;
+        return -1;
+    }
+
+    namedWindow("MyVideo", WINDOW_AUTOSIZE); //create a window - My Video
+    namedWindow("MyMotion", WINDOW_AUTOSIZE);
+
+    while (1)
+    {
+        if (!firstFrame)
+            oldFrame = frame.clone();
+
+        bool bSuccess = cap.read(frame); // read a new frame from video
+        
+        if (!bSuccess) {
+
+            cout << "Cannot read a frame from video file " << endl;
+            break;
+        }
+
+        if (firstFrame) {
+
+            oldFrame = frame.clone();
+            firstFrame = false;
+        }
+
+        motion = getSimilarity(frame, oldFrame);
+        imshow("MyVideo", frame); //show the frame in "My Video" window
+        imshow("MyMotiion", motion); //show the frame in "MyMotion" window
+
+        int key = waitKey(30);
+        if (key == 27) // 27 = Esc
+        {
+            cout << "esc key is pressed by user " << endl;
+            break;
+
+        }
+    }
+return 0;
+
+}

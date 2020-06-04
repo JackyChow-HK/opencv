@@ -1,0 +1,47 @@
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
+#include <stdint.h>
+
+using namespace cv;
+using namespace std;
+
+Mat original = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+Mat modified = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+Mat C_modified = imread("Gundam00.jpg", IMREAD_COLOR);
+
+int ColourChange(const int c_code);
+
+int main()
+{
+	// intensity 
+	Mat splitChannels[3];
+
+	split(C_modified, splitChannels);
+
+	imshow("B", splitChannels[0]);
+	imshow("G", splitChannels[1]);
+	imshow("R", splitChannels[2]);
+
+
+	splitChannels[2] = Mat::zeros(splitChannels[2].size(), CV_8UC1); //set channel 2 as zero
+	Mat output; //store 
+
+	merge(splitChannels, 3, output);
+	imshow("Merge", output); // Merge without Red
+	waitKey(0);
+	return 0;
+}
+
+int ColourChange(const int c_code)
+{
+	for (int r = 0; r < C_modified.rows; r++)
+	{
+		for (int c = 0; c < C_modified.cols; c++) {
+			C_modified.at<cv::Vec3b>(r, c)[c_code] = C_modified.at<cv::Vec3b>(r, c)[c_code] * 0; // template func
+		
+		}
+	}
+	return 1;
+}

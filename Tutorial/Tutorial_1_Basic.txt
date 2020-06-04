@@ -1,0 +1,90 @@
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
+#include <stdint.h>
+
+using namespace cv;
+using namespace std;
+
+Mat original = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+Mat modified = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+Mat C_modified = imread("Gundam00.jpg", IMREAD_COLOR);
+
+int ColourChange(const int c_code);
+
+int main()
+{
+	//Tutorial 4 deal with colour change 
+
+	for (int r = 0; r < modified.rows; r++)
+	{
+		for (int c = 0; c < modified.cols; c++) {
+
+
+			modified.at<uint8_t>(r, c) = modified.at<uint8_t>(r, c) * 0.5f; // template func
+
+		}
+	}
+
+	//imshow("Original", original);
+	//imshow("Modified", modified);
+	int c_code = 2;
+
+	if (c_code == 0) { ColourChange(0); } //blue[0]
+	else if (c_code == 1) { ColourChange(1); }  //green[1]
+	else { ColourChange(2); } //red[2]
+
+	imshow("Modified", C_modified);
+
+	//Mat image = Mat::zeros(300, 600, CV_8UC3);//matrix
+	//circle(image, Point(250, 150), 100, Scalar(0, 255, 128), -100);
+	//circle(image, Point(350, 150), 100, Scalar(255, 255, 255), -100);
+	//imshow("Display Window", image);
+	
+	//Tutorial 3 with Window
+	/*
+	Mat file1 = imread("Gundam00.jpg", IMREAD_UNCHANGED);
+	Mat file2 = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+
+	namedWindow("Coloured", WINDOW_FREERATIO); // allows to Declare a window
+	namedWindow("Fixed", WINDOW_AUTOSIZE);
+
+	imshow("Coloured", file1);
+
+	imshow("Fixed", file2);
+
+	resizeWindow("Coloured", file1.cols/2, file1.rows/2);
+	resizeWindow("Fixed", file1.cols/2, file1.rows/2);
+
+	moveWindow("Coloured", 500, 300);
+	//moveWindow("Fixed", 300, 300);
+	moveWindow("Fixed", 500 + file1.cols+10, 300); // make side by side
+	*/
+
+	//Tutorial 2 Load, Save Image
+	/*Mat testColor = imread("Gundam00.jpg", IMREAD_COLOR);
+	Mat testGray = imread("Gundam00.jpg", IMREAD_GRAYSCALE);
+	imshow("color", testColor);
+	imshow("gray", testGray);
+	
+	imwrite("Test1.jpg", testColor);
+	imwrite("Test2.jpg",testGray);*/
+
+
+	
+	waitKey(0);
+	return 0;
+}
+
+int ColourChange(const int c_code)
+{
+	for (int r = 0; r < C_modified.rows; r++)
+	{
+		for (int c = 0; c < C_modified.cols; c++) {
+			C_modified.at<cv::Vec3b>(r, c)[c_code] = C_modified.at<cv::Vec3b>(r, c)[c_code] * 0; // template func
+		
+		}
+	}
+	return 1;
+}

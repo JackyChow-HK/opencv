@@ -1,0 +1,107 @@
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/video.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+Mat gray;
+Mat frame;
+Mat s1;
+
+int thresh = 100;
+int max_thresh = 255;
+int colorThresh = 51;
+int colorMaxThresh = 255;
+
+bool detectForm(int, void*);
+
+
+int main()
+{       
+
+
+    VideoCapture cap(0);
+    if (!cap.isOpened()) {//if not sucess , exit program
+        cout << "Cannot open the video file" << endl;
+        return -1;
+    }
+
+    namedWindow("sourceWin", WINDOW_AUTOSIZE); //create a window - My Video
+
+    while (1)
+    {
+
+        bool bSuccess = cap.read(frame); // read a new frame from video
+
+        if (!bSuccess) {
+
+            cout << "Cannot read a frame from video file " << endl;
+            break;
+        }
+
+        cvtColor(frame, gray, COLOR_RGB2GRAY);
+        imshow("sourceWin", frame);
+        detectForm(0, 0);
+
+        int key = waitKey(30);
+    }
+
+    return 0;
+}
+
+bool  detectForm(int, void*)
+{
+    vector<vector<Point>> contours;
+    vector<Point>approx;
+    vector<Vec4i> hierarchy;
+
+    bool detect = false;
+    Mat bAndW;
+    Mat drawing = Mat::zeros(gray.size(), CV_8UC3);
+    Scalar colorRectangle = Scalar(255, 0, 0);
+    Scalar colorTriangle = Scalar(0, 255, 0);
+    Scalar colorPentagon = Scalar(0, 0, 255);
+    Canny(gray, bAndW, thresh, thresh * 2, 3);
+
+    imshow("Canny Filter", bAndW);
+
+    findContours(bAndW, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0));
+
+
+    for (size_t i = 0; i < contours.size(); i++) {
+
+        approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true) * 0.02, true);
+
+        switch (approx.size())
+        {
+        case 3:
+            drawContours(drawing, contours, i, colorTriangle, 2, 8, hierarchy, 0, Point());
+            break;
+
+        case 4:
+            drawContours(drawing, contours, i, colorRectangle, 2, 8, hierarchy, 0, Point());
+            break;
+
+        case 5:
+            drawContours(drawing, contours, i, colorPentagon, 2, 8, hierarchy, 0, Point());
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    namedWindow("Contours", WINDOW_AUTOSIZE);
+    imshow("Contours", drawing);
+
+    return detect;
+}

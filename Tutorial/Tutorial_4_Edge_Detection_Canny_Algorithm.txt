@@ -1,0 +1,96 @@
+#include <opencv2/opencv.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+Mat gray;
+
+int thresh = 100;
+int max_thresh = 255;
+
+//Function Header 
+void canny_callback(int, void*);
+
+
+int main()
+{
+    Mat image = imread("Gundam00.jpg");
+    if (image.empty()) {
+
+        cout << "felher beim laden des bildes! Error in loading the images!" << endl;
+        return -1;
+    }
+    
+    //Create Window
+    const char* source_window = "Form Detection";
+
+    namedWindow(source_window, WINDOW_AUTOSIZE);
+    imshow(source_window, image);
+
+
+    cvtColor(image, gray, COLOR_RGB2GRAY);//Converts an image from one color space to another. 
+    //Whenever you change the position of a trackbar, the value of an integer variable is changed. 
+    createTrackbar("Canny thresh:", "Form Detection", &thresh, max_thresh, canny_callback);
+    canny_callback(0, 0);
+    waitKey(0);
+    return(0);
+
+}
+
+// Canny algorithm - edge detection that is widely used in digital image processing
+//As a rule, color images are converted into a common gray value image before edge detection.
+
+void canny_callback(int, void*)
+{
+    vector<vector<Point>> contours;
+    vector<Point>approx;
+    vector<Vec4i> hierarchy;
+    Mat bAndW;
+
+    Mat drawing = Mat::zeros(gray.size(), CV_8UC3);
+    Scalar colorRectangle = Scalar(255, 0, 0);
+    Scalar colorTriangle = Scalar(0, 255, 0);
+    Scalar colorPentagon = Scalar(0, 0, 255);
+
+    //Detect edge using canny 
+    Canny(gray, bAndW, thresh, thresh *2,3);
+
+    imshow("Canny Filter", bAndW);
+
+    findContours(bAndW, contours, hierarchy, RETR_TREE, CHAIN_APPROX_NONE, Point(0, 0));
+
+    for (size_t i = 0; i < contours.size(); i++) {
+
+        approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true) * 0.02, true);
+
+        switch (approx.size())
+        {
+        case 3:
+            drawContours(drawing, contours, i, colorTriangle, 2, 8, hierarchy, 0, Point());
+            break;
+
+        case 4:
+            drawContours(drawing, contours, i, colorRectangle, 2, 8, hierarchy, 0, Point());
+            break;
+        
+        case 5:
+            drawContours(drawing, contours, i, colorPentagon, 2, 8, hierarchy, 0, Point());
+            break;
+        
+        default:
+            break;
+        }
+    }
+
+    namedWindow("Contours", WINDOW_AUTOSIZE);
+    imshow("Contours", drawing);
+
+
+}
